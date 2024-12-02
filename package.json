@@ -1,0 +1,19 @@
+{
+  "name": "pdf",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "dev": "bun --watch index.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "cloudinary": "^2.5.1",
+    "hono": "^4.6.12",
+    "puppeteer": "^23.9.0"
+  }
+}
