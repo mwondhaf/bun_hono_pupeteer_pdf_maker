@@ -3,7 +3,8 @@ import puppeteer from "puppeteer";
 
 const app = new Hono();
 
-import { v2 as cloudinary } from "cloudinary";
+import { v2 as cloudinary, type UploadApiResponse } from "cloudinary";
+import { HTTPException } from "hono/http-exception";
 
 // Configuration
 cloudinary.config({
@@ -33,17 +34,19 @@ app.get("/", async (c) => {
         Bun.write("debug-test.pdf", pdf); // Check if the file is valid
 
         // Upload to Cloudinary
-        const resource = await new Promise((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            {}, // Specify "raw" for non-image files
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          );
+        const resource: UploadApiResponse = await new Promise(
+          (resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+              {}, // Specify "raw" for non-image files
+              (error, result) => {
+                if (error) reject(error);
+                else resolve(result as UploadApiResponse);
+              }
+            );
 
-          uploadStream.end(pdf); // Stream the PDF data
-        });
+            uploadStream.end(pdf); // Stream the PDF data
+          }
+        );
 
         return resource;
       } finally {
@@ -53,14 +56,12 @@ app.get("/", async (c) => {
 
     const result = await handleUpload();
 
-    // Uncomment this line if you want to redirect to the uploaded file
-    // return c.redirect(result.secure_url);
-    console.log(result);
-
-    return c.json(result);
+    return c.json({ url: result.url });
   } catch (error) {
-    console.error("Error handling request:", error);
-    return c.json({ error: "Failed to process request" }, 500);
+    // console.error("Error handling request:", error);
+    throw new HTTPException(500, {
+      message: `Error handling request`,
+    });
   }
 });
 
